@@ -7,7 +7,7 @@
 
 int main(int argc, char *argv[])
 {
-    int input[4096];
+    int input[2000];
     int tmp;
     int i = 0;
 
@@ -18,9 +18,10 @@ int main(int argc, char *argv[])
     }
 
     int c = 0;
-    for (int i = 0; i < (sizeof(input) / sizeof(input[0]) - 1); i++)
+
+    for (int i = 0; i < (sizeof(input) / sizeof(input[0]) - 3); i++)
     {
-        if (input[i] < input[i + 1])
+        if ((input[i] + input[i + 1] + input[i + 2]) < (input[i + 1] + input[i + 2] + input[i + 3]))
             c++;
     }
     
