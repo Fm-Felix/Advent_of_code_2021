@@ -13,3 +13,7 @@
 02_t:
 	ruby src/solution02.rb < input_test.txt
 	@echo DONE
+
+test:
+	ruby src/test.rb < input_test.txt
+	@echo DONE
