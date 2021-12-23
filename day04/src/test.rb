@@ -1,5 +1,5 @@
 input = ARGF.read
-numbers = input.split
+numbers = input.split("\n")
 
 o2 = numbers.map(&:chars)
 

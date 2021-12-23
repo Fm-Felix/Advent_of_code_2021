@@ -1,18 +1,42 @@
-data = Array.new(12) {[]} #Array of 12 bit-sequences
+input = ARGF.read
+lines = input.split("\n")
 
-ARGF.each_line { |line|
-    line.chomp.chars.each.with_index {|c, i| data[i] << c.to_i}
-}
+lines_per_board = 6 # including whiteline
+line_offset = 2
+num_boards = lines.count / lines_per_board
 
-gamma = data.map { |bl| bl.tally.max_by{ |k, v| v }.first } # calculate most frequent bit
-epsilon = gamma.map { |b| b == 0 ? 1 : 0 }.join.to_i(2) # flip the bits and convert to integer
-gamma = gamma.join.to_i(2) # convert to integer
+boards = num_boards.times.map do |idx|
+    idx *= lines_per_board
+    idx += line_offset
+    
+    lines[idx, lines_per_board - 1].map(&:split).map { |row| row.map(&:to_i) }
+end
 
-puts epsilon * gamma
+numbers = lines[0].split(",").map(&:to_i)
 
+def draw_numbers (numbers, boards)
+    drawn = []
 
+    numbers.each do |draw|
+        drawn << draw
+    
+        boards.each do |board|
+            board.each do |row|
+                return [draw, drawn, board, row] if row.all? { |num| drawn.any?(num) }
+            end 
 
+            board.transpose.each do |col|
+                return [draw, board, col] if col.all? { |num| drawn.any?(num) }
+            end
+        end
+    end    
+end
 
+winning_draw, drawn, winning_board, winning_seq = draw_numbers(numbers, boards)
 
+sum_non_drawn = winning_board.flatten.difference(drawn).sum
 
-
+puts winning_board.to_s	
+puts winning_seq.to_s	
+puts winning_draw.to_s	
+puts sum_non_drawn * winning_draw
