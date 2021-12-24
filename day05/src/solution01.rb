@@ -1,42 +1,31 @@
 input = ARGF.read
-lines = input.split("\n")
+lines = input.gsub(/->/, "").split.map { |x| x.split(",").map(&:to_i) }
 
-lines_per_board = 6 # including whiteline
-line_offset = 2
-num_boards = lines.count / lines_per_board
+vert = []
+horiz = []
 
-boards = num_boards.times.map do |idx|
-    idx *= lines_per_board
-    idx += line_offset
-    
-    lines[idx, lines_per_board - 1].map(&:split).map { |row| row.map(&:to_i) }
+[*0..(lines.count / 2) - 1].each do |idx|
+    idx *= 2 # offset to create sliding window
+    line = lines[idx, 2]
+    if line[0][0] == line[1][0]
+        vert << line
+    elsif line[0][1] == line[1][1]
+        horiz << line
+    end
+
 end
 
-numbers = lines[0].split(",").map(&:to_i)
+positions = []
+positions += vert.map { |line| 
+    f,s = line[0, 2]
+    numbers = f[1] < s[1] ? [*f[1]..s[1]] : [*s[1]..f[1]]
+    numbers.map { |x| [f[0],x] } # create array of positions between f[1] -> s[1]
+}
 
-def draw_numbers (numbers, boards)
-    drawn = []
+positions += horiz.map { |line| 
+    f,s = line[0, 2]
+    numbers = f[0] < s[0] ? [*f[0]..s[0]] : [*s[0]..f[0]]
+    numbers.map { |x| [x, f[1]] } # create array of positions between f[0] -> s[0]
+}
 
-    numbers.each do |draw|
-        drawn << draw
-    
-        boards.each do |board|
-            board.each do |row|
-                return [draw, drawn, board, row] if row.all? { |num| drawn.any?(num) }
-            end 
-
-            board.transpose.each do |col|
-                return [draw, board, col] if col.all? { |num| drawn.any?(num) }
-            end
-        end
-    end    
-end
-
-winning_draw, drawn, winning_board, winning_seq = draw_numbers(numbers, boards)
-
-sum_non_drawn = winning_board.flatten.difference(drawn).sum
-
-puts winning_board.to_s	
-puts winning_seq.to_s	
-puts winning_draw.to_s	
-puts sum_non_drawn * winning_draw
+p positions.flatten(1).tally.select { |k,v| v >= 2}.count
