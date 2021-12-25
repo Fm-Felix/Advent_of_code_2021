@@ -1,43 +1,45 @@
 input = ARGF.read
-lines = input.split("\n")
+lines = input.gsub(/->/, "").split.map { |x| x.split(",").map(&:to_i) }
 
-lines_per_board = 6 # including whiteline
-line_offset = 2
-num_boards = lines.count / lines_per_board
+vert = []
+horiz = []
+diag = []
 
-boards = num_boards.times.map do |idx|
-    idx *= lines_per_board
-    idx += line_offset
-    
-    lines[idx, lines_per_board - 1].map(&:split).map { |row| row.map(&:to_i) }
+[*0..(lines.count / 2) - 1].each do |idx|
+    idx *= 2 # offset to create sliding window
+    p1, p2 = lines[idx, 2]
+    if p1[0] == p2[0]
+        vert << [p1,p2]
+    elsif p1[1] == p2[1]
+        horiz << [p1,p2]
+    elsif (p1[0] - p2[0]).abs == (p1[1] - p2[1]).abs 
+        diag << [p1,p2]
+    end
 end
 
-numbers = lines[0].split(",").map(&:to_i)
+positions = []
+positions += vert.map { |line| 
+    f,s = line[0, 2]
+    numbers = f[1] < s[1] ? [*f[1]..s[1]] : [*s[1]..f[1]]
+    numbers.map { |x| [f[0],x] } # create array of positions between f[1] -> s[1]
+}
 
-def draw_numbers (numbers, boards)
-    drawn = []
-    seq = nil
+positions += horiz.map { |line| 
+    f,s = line[0, 2]
+    numbers = f[0] < s[0] ? [*f[0]..s[0]] : [*s[0]..f[0]]
+    numbers.map { |x| [x, f[1]] } # create array of positions between f[0] -> s[0]
+}
 
-    numbers.each do |draw|
-        drawn << draw
-        board_r = nil
+positions += diag.map { |line| 
+    f,s = line[0, 2]
+    numbers_x = f[0] < s[0] ? (f[0]..s[0]).step(1) : (f[0]..s[0]).step(-1)
+    numbers_y = f[1] < s[1] ? (f[1]..s[1]).step(1) : (f[1]..s[1]).step(-1)
 
-        boards.each do |board|
-            board_r = board
+    numbers = []
+    loop do n1, n2 = numbers_x.next, numbers_y.next
+        numbers << [n1, n2]
+    end
+    numbers
+}
 
-            board.each do |row|
-                boards.delete(board) if row.all? { |num| drawn.any?(num) }
-            end 
-
-            board.transpose.each do |col|
-                boards.delete(board) if col.all? { |num| drawn.any?(num) }
-            end
-        end
-
-        return [draw, drawn, board_r] if boards.count == 0
-    end    
-end
-
-losing_draw, drawn, losing_board = draw_numbers(numbers, boards)
-sum_non_drawn = losing_board.flatten.difference(drawn).sum
-puts sum_non_drawn * losing_draw
+p positions.flatten(1).tally.select { |k,v| v >= 2}.count
