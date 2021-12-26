@@ -1,6 +1,13 @@
 input = ARGF.read
-numbers = input.split("\n")
+list_spawnings = input.split(",").map(&:to_i)
 
-o2 = numbers.map(&:chars)
+num_spawns = 80 / 6
+extra_days = 80 % 6
 
-puts o2.to_s
+num_extra_spawns_original_fish = list_spawnings.select{|f| f <= extra_days}.count
+num_original_fish_spawns = num_spawns * list_spawnings.count + num_extra_spawns_original_fish
+
+
+
+
+p num_spawns, extra_days, num_original_fish_spawns
