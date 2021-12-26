@@ -1,17 +1,22 @@
 input = ARGF.read
-list_spawnings = input.split(",").map(&:to_i)
+h1 = {0 => 0, 1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0, 6 => 0, 7 => 0, 8 => 0}
+h2 = input.split(",").map(&:to_i).tally
+hash_spawnings = h1.merge(h2) { |k, ov, nv| ov + nv } 
 
-80.times do 
-    new_spawns = []
-    list_spawnings.each.with_index do |days_til_spawn, idx|
+256.times do 
+    spawned = 0
+    hash_spawnings.each do |days_til_spawn, num_spawns|
         if days_til_spawn == 0
-            new_spawns << 8 # add new fish
-            list_spawnings[idx] = 6 # reset spawn timer
+            spawned += num_spawns
         else
-            list_spawnings[idx] -= 1 # reset spawn timer
-        end  
+            # move fishes spawn-counter down one step
+            hash_spawnings[days_til_spawn - 1] += num_spawns 
+            hash_spawnings[days_til_spawn] -= num_spawns
+        end
     end
-    list_spawnings += new_spawns
+    hash_spawnings[8] += spawned # add new fishes
+    hash_spawnings[6] += spawned # reset timer of fishes that spawned
+    hash_spawnings[0] -= spawned
 end
 
-p list_spawnings.count
+p hash_spawnings.sum { |k, v| v  }
