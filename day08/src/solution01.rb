@@ -1,11 +1,18 @@
-input = ARGF.read
-positions = input.split(",").map(&:to_i).tally
+patterns = []
+outputs = []
 
+input = ARGF.each_line do |line|
+    line = line.chomp.split("|")
+    patterns << line[0].split
+    outputs << line[1].split
+end
 
-least_fuel = positions.keys.map {|pos_align| 
-    fuel = positions.sum { |pos,num| 
-        (pos - pos_align).abs * num }
+unique_outputs = outputs.sum do |output|
+    uniques = output.select do |seq|
+        [2,3,4,7].include?(seq.length) # check if length of output matches any of the unique lengths
+    end
+    
+    uniques.count
+end
 
-    [pos_align, fuel]
-}.min_by { |pos_align, fuel| fuel }
-p least_fuel
+p unique_outputs
